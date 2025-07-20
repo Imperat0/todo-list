@@ -1,0 +1,176 @@
+<div class="todo-container">
+  <header class="todo-header">
+    <h1>📝 Lista de Tarefas</h1>
+    <p class="subtitle">Organize suas tarefas de forma simples e eficiente</p>
+  </header>
+
+  <!-- Formulário para adicionar nova tarefa -->
+  <div class="add-todo-section">
+    <div class="form-group">
+      <input 
+        type="text" 
+        [(ngModel)]="newTodo.title" 
+        placeholder="Digite o título da tarefa..."
+        class="todo-input"
+        (keyup.enter)="addTodo()"
+      >
+      <textarea 
+        [(ngModel)]="newTodo.description" 
+        placeholder="Descrição (opcional)..."
+        class="todo-textarea"
+        rows="2"
+      ></textarea>
+      <button 
+        (click)="addTodo()" 
+        class="add-btn"
+        [disabled]="!newTodo.title.trim()"
+      >
+        ➕ Adicionar Tarefa
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros e estatísticas -->
+  <div class="filters-section">
+    <div class="filter-buttons">
+      <button 
+        (click)="filter = 'all'" 
+        [class.active]="filter === 'all'"
+        class="filter-btn"
+      >
+        Todas ({{ totalCount }})
+      </button>
+      <button 
+        (click)="filter = 'active'" 
+        [class.active]="filter === 'active'"
+        class="filter-btn"
+      >
+        Ativas ({{ totalCount - completedCount }})
+      </button>
+      <button 
+        (click)="filter = 'completed'" 
+        [class.active]="filter === 'completed'"
+        class="filter-btn"
+      >
+        Concluídas ({{ completedCount }})
+      </button>
+    </div>
+
+    <div class="export-import">
+      <button (click)="exportData()" class="export-btn">
+        📤 Exportar JSON
+      </button>
+      <label class="import-btn">
+        📥 Importar JSON
+        <input 
+          type="file" 
+          accept=".json" 
+          (change)="importData($event)" 
+          style="display: none;"
+        >
+      </label>
+    </div>
+  </div>
+
+  <!-- Lista de tarefas -->
+  <div class="todos-list">
+    <div 
+      *ngFor="let todo of filteredTodos" 
+      class="todo-item"
+      [class.completed]="todo.completed"
+    >
+      <!-- Modo de visualização -->
+      <div *ngIf="editingTodo?.id !== todo.id" class="todo-content">
+        <div class="todo-checkbox">
+          <input 
+            type="checkbox" 
+            [checked]="todo.completed"
+            (change)="toggleTodo(todo.id)"
+            class="checkbox"
+          >
+        </div>
+        
+        <div class="todo-text">
+          <h3 class="todo-title" [class.strikethrough]="todo.completed">
+            {{ todo.title }}
+          </h3>
+          <p *ngIf="todo.description" class="todo-description">
+            {{ todo.description }}
+          </p>
+          <div class="todo-meta">
+            <span class="todo-date">
+              Criado: {{ todo.createdAt | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+            <span *ngIf="todo.updatedAt !== todo.createdAt" class="todo-date">
+              Atualizado: {{ todo.updatedAt | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="todo-actions">
+          <button 
+            (click)="startEdit(todo)" 
+            class="action-btn edit-btn"
+            title="Editar"
+          >
+            ✏️
+          </button>
+          <button 
+            (click)="deleteTodo(todo.id)" 
+            class="action-btn delete-btn"
+            title="Excluir"
+          >
+            🗑️
+          </button>
+        </div>
+      </div>
+
+      <!-- Modo de edição -->
+      <ng-container *ngIf="editingTodo && editingTodo.id === todo.id">
+        <div class="todo-edit">
+          <div class="edit-form">
+            <input 
+              type="text" 
+              [(ngModel)]="editingTodo.title" 
+              class="edit-input"
+              placeholder="Título da tarefa"
+            >
+            <textarea 
+              [(ngModel)]="editingTodo.description" 
+              class="edit-textarea"
+              placeholder="Descrição (opcional)"
+              rows="2"
+            ></textarea>
+            <div class="edit-actions">
+              <button 
+                (click)="saveEdit()" 
+                class="save-btn"
+                [disabled]="!editingTodo.title.trim()"
+              >
+                💾 Salvar
+              </button>
+              <button (click)="cancelEdit()" class="cancel-btn">
+                ❌ Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Mensagem quando não há tarefas -->
+    <div *ngIf="filteredTodos.length === 0" class="empty-state">
+      <div class="empty-icon">📝</div>
+      <h3>Nenhuma tarefa encontrada</h3>
+      <p *ngIf="filter === 'all'">
+        Comece adicionando sua primeira tarefa acima!
+      </p>
+      <p *ngIf="filter === 'active'">
+        Todas as tarefas foram concluídas! 🎉
+      </p>
+      <p *ngIf="filter === 'completed'">
+        Nenhuma tarefa foi concluída ainda.
+      </p>
+    </div>
+  </div>
+</div> 
